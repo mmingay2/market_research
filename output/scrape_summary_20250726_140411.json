@@ -1,0 +1,33 @@
+{
+  "total_patents": 60,
+  "scrape_date": "2025-07-26T14:05:31.630920",
+  "pages_scraped": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "patents_with_titles": 60,
+  "patents_with_numbers": 0,
+  "unique_organizations": 0,
+  "raw_file": "raw_patents_20250726_140411.json",
+  "cleaned_file": "cleaned_patents_20250726_140411.json",
+  "summary_file": "scrape_summary_20250726_140411.json",
+  "timestamp": "20250726_140411"
+}

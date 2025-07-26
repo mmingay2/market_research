@@ -1,0 +1,31 @@
+{
+  "scraper": {
+    "base_url": "https://ised-isde.canada.ca/ipm-mcpi/patents-brevets",
+    "start_page": 1,
+    "end_page": 20,
+    "timeout": 20,
+    "rate_limit_delay": 3,
+    "max_retries": 3
+  },
+  "output": {
+    "directory": "output",
+    "use_timestamps": true,
+    "timestamp_format": "%Y%m%d_%H%M%S",
+    "raw_filename": "raw_patents_{timestamp}.json",
+    "cleaned_filename": "cleaned_patents_{timestamp}.json",
+    "summary_filename": "scrape_summary_{timestamp}.json"
+  },
+  "chrome_options": [
+    "--headless",
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--window-size=1920,1080",
+    "--disable-blink-features=AutomationControlled",
+    "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  ],
+  "logging": {
+    "level": "INFO",
+    "log_file": "scraper.log"
+  }
+} 
