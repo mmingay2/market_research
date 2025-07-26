@@ -61,12 +61,29 @@ class PatentScraperConfig:
     """Configuration class for the patent scraper"""
     
     def __init__(self):
-        self.base_url = "https://ised-isde.canada.ca/ipm-mcpi/patents-brevets"
-        self.start_page = 1
-        self.end_page = 20
-        self.timeout = 30  # Increased timeout
-        self.rate_limit_delay = 5  # Increased delay
-        self.max_retries = 3
+        # Load configuration from config.json
+        try:
+            with open('config.json', 'r') as f:
+                config_data = json.load(f)
+            
+            scraper_config = config_data.get('scraper', {})
+            self.base_url = scraper_config.get('base_url', "https://ised-isde.canada.ca/ipm-mcpi/patents-brevets")
+            self.start_page = scraper_config.get('start_page', 1)
+            self.end_page = scraper_config.get('end_page', 20)
+            self.timeout = scraper_config.get('timeout', 30)
+            self.rate_limit_delay = scraper_config.get('rate_limit_delay', 5)
+            self.max_retries = scraper_config.get('max_retries', 3)
+            
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            logger.warning(f"Could not load config.json: {e}. Using default values.")
+            # Fallback to default values
+            self.base_url = "https://ised-isde.canada.ca/ipm-mcpi/patents-brevets"
+            self.start_page = 1
+            self.end_page = 20
+            self.timeout = 30
+            self.rate_limit_delay = 5
+            self.max_retries = 3
+        
         self.output_dir = Path("output")
         self.use_timestamps = True
         self.timestamp_format = "%Y%m%d_%H%M%S"
