@@ -45,7 +45,7 @@ def combine_json_files(json_files=None):
     output_filename = f"combined_patents_{timestamp}.txt"
     
     # Save to file
-    df.to_csv(output_filename, sep="\t", index=False, header=False)
+    df.to_csv(output_filename, sep="\t", index=False, header=True)
     print(f"Saved combined data to: {output_filename}")
     
     return df
