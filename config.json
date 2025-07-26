@@ -1,7 +1,7 @@
 {
   "scraper": {
     "base_url": "https://ised-isde.canada.ca/ipm-mcpi/patents-brevets",
-    "start_page": 80,
+    "start_page": 1,
     "end_page": 120,
     "timeout": 20,
     "rate_limit_delay": 3,
