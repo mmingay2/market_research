@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}{{ patent.patent_id }} - Patent Viewer{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div style="margin-bottom: 2rem;">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        ← Back
+    </a>
+</div>
+
+<!-- Patent Header -->
+<div style="background: var(--surface); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid var(--border);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+        <div style="flex: 1;">
+            <div style="font-size: 0.875rem; color: var(--accent); font-weight: 500; margin-bottom: 0.5rem; font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;">
+                {{ patent.patent_id }}
+            </div>
+            <h1 style="font-size: 1.75rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; line-height: 1.3;">
+                {{ patent.title or 'No Title Available' }}
+            </h1>
+        </div>
+        <div>
+            <a href="{{ patent.url }}" target="_blank" class="btn btn-primary">
+                View on Google Patents
+            </a>
+        </div>
+    </div>
+    
+    <!-- Essential Info Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+        {% if patent.filing_date %}
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 500; margin-bottom: 0.25rem;">
+                Filing Date
+            </div>
+            <div style="font-weight: 500;">{{ patent.filing_date }}</div>
+        </div>
+        {% endif %}
+        
+        {% if patent.publication_date %}
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 500; margin-bottom: 0.25rem;">
+                Publication Date
+            </div>
+            <div style="font-weight: 500;">{{ patent.publication_date }}</div>
+        </div>
+        {% endif %}
+        
+        {% if patent.authority %}
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 500; margin-bottom: 0.25rem;">
+                Authority
+            </div>
+            <div style="font-weight: 500;">{{ patent.authority }}</div>
+        </div>
+        {% endif %}
+        
+        {% if patent.legal_status %}
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 500; margin-bottom: 0.25rem;">
+                Status
+            </div>
+            <div style="font-weight: 500;">{{ patent.legal_status }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Abstract -->
+{% if patent.abstract %}
+<div style="background: var(--background); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+        Abstract
+    </h2>
+    <p style="line-height: 1.6; color: var(--text-primary);">
+        {{ patent.abstract }}
+    </p>
+</div>
+{% endif %}
+
+<!-- People -->
+{% if patent.inventors or patent.assignees %}
+<div style="background: var(--background); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+        People
+    </h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        {% if patent.inventors %}
+        <div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem;">
+                Inventors
+            </div>
+            <div style="font-weight: 500;">
+                {% for inventor in patent.inventors %}
+                    <div style="margin-bottom: 0.25rem;">{{ inventor }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if patent.assignees %}
+        <div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem;">
+                Assignees
+            </div>
+            <div style="font-weight: 500;">
+                {% for assignee in patent.assignees %}
+                    <div style="margin-bottom: 0.25rem;">{{ assignee }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Patent Report Card -->
+<div style="background: var(--background); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
+            Commercial Potential Report Card
+        </h2>
+        <button id="generateReportCard" class="btn btn-primary" onclick="generateReportCard()">
+            Generate Report Card
+        </button>
+    </div>
+    
+    <div id="reportCardLoading" style="display: none; text-align: center; padding: 2rem;">
+        <div style="color: var(--text-secondary); margin-bottom: 1rem;">Analyzing patent...</div>
+        <div style="width: 40px; height: 40px; border: 3px solid var(--border); border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+    </div>
+    
+    <div id="reportCardContent" style="display: none;">
+        <!-- Report card will be populated here -->
+    </div>
+    
+    <div id="reportCardError" style="display: none; color: var(--error); text-align: center; padding: 1rem;">
+        <!-- Error messages will be shown here -->
+    </div>
+    
+    <div id="reportCardUnavailable" style="display: none; text-align: center; padding: 2rem; color: var(--text-secondary);">
+        <div style="margin-bottom: 1rem;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+        </div>
+        <div style="font-weight: 500; margin-bottom: 0.5rem;">Report Card Generation Unavailable</div>
+        <div style="font-size: 0.875rem;">OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.</div>
+    </div>
+</div>
+
+<!-- Claims (First 3 only) -->
+{% if patent.claims %}
+<div style="background: var(--background); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+        Claims
+    </h2>
+    
+    {% for claim in patent.claims[:3] %}
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface); border-radius: 8px;">
+        <div style="font-size: 0.875rem; color: var(--accent); font-weight: 500; margin-bottom: 0.5rem;">
+            Claim {{ loop.index }}
+        </div>
+        <p style="line-height: 1.6; color: var(--text-primary);">
+            {{ claim[:300] }}{% if claim|length > 300 %}...{% endif %}
+        </p>
+    </div>
+    {% endfor %}
+    
+    {% if patent.claims|length > 3 %}
+    <div style="text-align: center; padding: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+        + {{ patent.claims|length - 3 }} more claims
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    padding-left: 10px;
+}
+
+.text-justify {
+    text-align: justify;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.report-card-score {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.25rem;
+    text-align: center;
+    min-width: 60px;
+}
+
+.score-0-2 { background: #fee2e2; color: #dc2626; } /* 0.0-0.2: niche */
+.score-3-5 { background: #fef3c7; color: #d97706; } /* 0.2-0.4: of-interest */
+.score-6-8 { background: #dbeafe; color: #2563eb; } /* 0.4-0.6: strong */
+.score-9-10 { background: #dcfce7; color: #16a34a; } /* 0.6-1.0: very strong to blockbuster */
+
+.use-case-tag {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.25rem 0.75rem;
+    margin: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+</style>
+
+<script>
+function generateReportCard() {
+    const button = document.getElementById('generateReportCard');
+    const loading = document.getElementById('reportCardLoading');
+    const content = document.getElementById('reportCardContent');
+    const error = document.getElementById('reportCardError');
+    const unavailable = document.getElementById('reportCardUnavailable');
+    
+    // Show loading state
+    button.style.display = 'none';
+    loading.style.display = 'block';
+    content.style.display = 'none';
+    error.style.display = 'none';
+    unavailable.style.display = 'none';
+    
+    // Make API call
+    fetch(`/generate-report-card/{{ filename }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        loading.style.display = 'none';
+        
+        if (data.success) {
+            displayReportCard(data.report_card);
+        } else if (data.error && data.error.includes('not available')) {
+            showUnavailable();
+        } else {
+            showError(data.error || 'Failed to generate report card');
+        }
+    })
+    .catch(err => {
+        loading.style.display = 'none';
+        showError('Network error: ' + err.message);
+    });
+}
+
+function showUnavailable() {
+    const button = document.getElementById('generateReportCard');
+    const unavailable = document.getElementById('reportCardUnavailable');
+    
+    unavailable.style.display = 'block';
+    button.style.display = 'inline-block';
+}
+
+function displayReportCard(reportCard) {
+    const content = document.getElementById('reportCardContent');
+    const button = document.getElementById('generateReportCard');
+    
+    // Determine score class for 0-1 float scores
+    let scoreClass = 'score-0-2'; // 0.0-0.2: niche
+    if (reportCard.wow_score >= 0.2 && reportCard.wow_score < 0.4) scoreClass = 'score-3-5'; // 0.2-0.4: of-interest
+    else if (reportCard.wow_score >= 0.4 && reportCard.wow_score < 0.6) scoreClass = 'score-6-8'; // 0.4-0.6: strong
+    else if (reportCard.wow_score >= 0.6) scoreClass = 'score-9-10'; // 0.6-1.0: very strong to blockbuster
+    
+    content.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-bottom: 2rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">WOW SCORE</div>
+                <div class="report-card-score ${scoreClass}">${(reportCard.wow_score * 10).toFixed(1)}/10</div>
+            </div>
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">HEADLINE</div>
+                <div style="font-weight: 600; font-size: 1.125rem; color: var(--text-primary);">${reportCard.headline}</div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 2rem;">
+            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">VERDICT</div>
+            <div style="font-weight: 600; color: var(--text-primary); padding: 1rem; background: var(--surface); border-radius: 8px; border-left: 4px solid var(--accent);">
+                ${reportCard.verdict}
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 2rem;">
+            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">KEY USE CASES</div>
+            <div>
+                ${reportCard.key_use_cases.map(useCase => `<span class="use-case-tag">${useCase}</span>`).join('')}
+            </div>
+        </div>
+        
+        <div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">RATIONALE</div>
+            <div style="line-height: 1.6; color: var(--text-primary); padding: 1rem; background: var(--surface); border-radius: 8px;">
+                ${reportCard.rationale}
+            </div>
+        </div>
+    `;
+    
+    content.style.display = 'block';
+    button.textContent = 'Regenerate Report Card';
+    button.style.display = 'inline-block';
+}
+
+function showError(message) {
+    const error = document.getElementById('reportCardError');
+    const button = document.getElementById('generateReportCard');
+    
+    error.innerHTML = `<strong>Error:</strong> ${message}`;
+    error.style.display = 'block';
+    button.style.display = 'inline-block';
+}
+</script>
+{% endblock %} 
